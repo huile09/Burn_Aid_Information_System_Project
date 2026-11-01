@@ -152,7 +152,7 @@ Mở trình duyệt web và truy cập địa chỉ:
   * Mai Hồ Quốc Túy
   * Nguyễn Ngọc Khánh Uyên
   * Nguyễn Khắc Lưu Vũ
-* **Đơn vị:** Khoa Hệ thống Thông tin, Trường Đại học Công nghệ Thông tin - ĐHQG TP.HCM (UIT - VNUHCM).
+* **Đơn vị:** Viện Công nghệ Thông minh và Tương tác, Trường Đại học Kinh tế Thành phố Hồ Chí Minh (UEH).
 
 ---
 
