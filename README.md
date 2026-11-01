@@ -151,7 +151,7 @@ Mở trình duyệt web và truy cập địa chỉ:
   * Hà Phương Thảo
   * Mai Hồ Quốc Túy
   * Nguyễn Ngọc Khánh Uyên
-  * Nguyễn Thị Hồng Thúy
+  * Nguyễn Khắc Lưu Vũ
 * **Đơn vị:** Khoa Hệ thống Thông tin, Trường Đại học Công nghệ Thông tin - ĐHQG TP.HCM (UIT - VNUHCM).
 
 ---
