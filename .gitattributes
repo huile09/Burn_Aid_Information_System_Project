@@ -1,0 +1,5 @@
+# Git LFS Tracking for Large PyTorch Weights
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
+code/models/*.pt filter=lfs diff=lfs merge=lfs -text
+code/models/*.pth filter=lfs diff=lfs merge=lfs -text
