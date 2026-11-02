@@ -13,9 +13,9 @@
 * 🌐 **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
 * 📊 **Full Dataset (Kaggle):** [Kaggle Skin Burn Detection Benchmark (4,686 images)](https://www.kaggle.com/datasets/fareselmenshawii/skin-burn-dataset)
 * 🧠 **Pretrained Model Weights (Google Drive):** [Download ConvNeXtV2 & U-Net++ Models](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)
-* 📄 **Báo Cáo Đồ Án (PDF):** [`report/IS.REPORT.pdf`](report/report.pdf)
+* 📄 **Báo Cáo Đồ Án (PDF):** [`report/IS.report.pdf`](report/IS.REPORT.pdf)
 * 📝 **Bài Báo Khoa Học (LaTeX):** [`report/paper/main.tex`](report/paper/main.tex)
-* 🖥️ **Slide Báo Cáo (PDF):** [`slides/Bai_Thuyet_Trinh_BurnAid.pdf`](slides/Bai_Thuyet_Trinh_BurnAid.pdf)
+* 🖥️ **Slide Báo Cáo (PDF):** [`slides/Bai_Thuyet_Trinh_BurnAid.pdf`](slides/IS.SLIDES.pdf)
 
 ---
 
