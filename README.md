@@ -37,7 +37,7 @@
 
 ## 📁 Cấu Trúc Thư Mục Dự Án (Repository Structure)
 
-Cấu trúc thư mục được tổ chức chuẩn mực theo yêu cầu:
+Cấu trúc thư mục:
 
 ```text
 BurnAid_AI/
@@ -74,17 +74,13 @@ BurnAid_AI/
 │   └── test_normal_skin.jpg # Ảnh mẫu da lành bình thường (kiểm tra kiềm chế mask ảo)
 │
 ├── report/                  # Báo cáo và bài báo khoa học
-│   ├── report.pdf           # Báo cáo đồ án / khóa luận tốt nghiệp (dạng PDF)
+│   ├── IS.REPORT.pdf           # Báo cáo đồ án (dạng PDF)
 │   └── paper/               # Bài báo khoa học viết bằng LaTeX
 │       ├── main.tex         # Mã nguồn bài báo chuẩn định dạng IEEE LaTeX
-│       ├── references.bib   # Thư mục trích dẫn y văn chuẩn BibTeX (22 tài liệu)
-│       ├── BurnAid_AI_Research_Paper.docx # Bản Word bài báo hoàn chỉnh
-│       └── BurnAid_Paper_Detailed_Summary.docx # Bản Word tóm tắt chi tiết & phản biện
+│       ├── GROUP_03_PAPER  # Bản PDF paper
 │
 └── slides/                  # Slide báo cáo thuyết trình
-    ├── Bai_Thuyet_Trinh_BurnAid.pdf  # Slide thuyết trình đồ án (dạng PDF)
-    ├── Bai_Thuyet_Trinh_BurnAid.pptx # File gốc PowerPoint có hiệu ứng
-    └── 4_DE_TAI_HTTT.pptx            # Slide tổng quan đề tài ngành Hệ thống Thông tin
+    ├── IS.SLIDES.pdf  # Slide thuyết trình đồ án (dạng PDF)
 ```
 
 ---
