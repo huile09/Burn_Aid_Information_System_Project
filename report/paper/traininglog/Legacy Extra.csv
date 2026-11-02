@@ -1,0 +1,11 @@
+﻿Field,Value
+Variant,(+ConvNeXt)
+Best epoch / stop note,17 (Early stop: 23)
+Train loss,0.0837
+Valid Macro-F1 @0.5,0.8051
+Final Macro-F1 (optimized thresholds),0.8145
+Macro precision,0.7831
+Macro recall,0.8513
+Per-class F1: D1 / D2 / D3 / None,0.7876 / 0.6995 / 0.7707 / 1.0000
+Source,"Markdown đã dán (1).md — last row; setup, source split and scope not specified"
+Caveat,Different threshold and possibly different experiment. Not included in 3-seed A100 ranking.

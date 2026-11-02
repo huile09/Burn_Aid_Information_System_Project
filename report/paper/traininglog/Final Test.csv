@@ -1,0 +1,4 @@
+﻿Model,Role,Mean Dice,Mean IoU,Empty burn masks,Images better vs paired,Test N,Source notebook,Caveat
+Manual-only U-Net++ v6,Older manual-only baseline,0.6592,0.5464,,,13,Burn_Benchmark_v3_TEST_Segmentation_Safe (1).ipynb,Earlier test evaluation; same 13 manual masks
+Curriculum U-Net++ v5,Chosen segmentation model,0.72153,0.60142,0,4,13,Burn_Final_Test_UPerNet_vs_Curriculum_UNetPP (1).ipynb,Paired with UPerNet on same test; mask empty 0/13
+UPerNet MiT-B2,Model-selection challenger,0.71698,0.61958,1,9,13,Burn_Final_Test_UPerNet_vs_Curriculum_UNetPP (1).ipynb,Mask empty 1/13; mean Dice marginally lower

@@ -1,0 +1,7 @@
+﻿Seed,Best epoch,Val Dice,Val IoU,Negative FP rate,Selection Score,Log CSV
+42,15,0.692432892,0.584250502,0.06122449,0.683249219,random_curriculum_seed42_learning_curve.csv
+123,12,0.700023533,0.58926848,0.030612245,0.695431696,random_curriculum_seed123_learning_curve.csv
+2026,6,0.712932274,0.606649818,0.020408163,0.70987105,random_curriculum_seed2026_learning_curve.csv
+,,,,,,
+Across seeds,Mean,0.701796233,0.5933896,0.037414966,0.696183988,
+Across seeds,Sample Std,0.010364025,0.011754576,0.02124149,0.01332685,

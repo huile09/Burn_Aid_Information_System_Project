@@ -1,0 +1,6 @@
+﻿Rank,Model,timm ID,Mean Macro-F1,Std (sample),Runs,Gap to top
+1,ConvNeXtV2 Nano,convnextv2_nano.fcmae_ft_in22k_in1k,0.855130087,0.006814116,3,0
+2,DeiT III Small,deit3_small_patch16_224.fb_in1k,0.851985092,0.005631815,3,-0.003144996
+3,Swin Tiny,swin_tiny_patch4_window7_224.ms_in1k,0.849041856,0.008207252,3,-0.006088231
+4,ViT Base/16,vit_base_patch16_224.augreg_in21k_ft_in1k,0.841081205,0.003825722,3,-0.014048882
+5,EfficientNetV2-S,efficientnetv2_rw_s.ra2_in1k,0.825423563,0.008785488,3,-0.029706524

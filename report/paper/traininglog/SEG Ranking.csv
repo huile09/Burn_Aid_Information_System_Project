@@ -1,0 +1,5 @@
+﻿Rank,Model,Model ID,Sampling,Mean Score,Score Std,Mean Dice,Mean FP Rate,Runs,Gap to top
+1,UPerNet MiT-B2,UPerNet_mit_b2,random_curriculum,0.69890263,0.002529937,0.69890263,0,3,0
+2,SegFormer MiT-B3,Segformer_mit_b3,random_curriculum,0.696263521,0.020169386,0.696263521,0,3,-0.002639109
+3,SegFormer MiT-B2,Segformer_mit_b2,random_curriculum,0.696125099,0.008019756,0.700206731,0.027210884,3,-0.002777532
+4,U-Net++ ResNet34,UnetPlusPlus_resnet34,random_curriculum,0.677370239,0.008658702,0.689615137,0.081632653,3,-0.021532392

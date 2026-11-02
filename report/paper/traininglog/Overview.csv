@@ -1,0 +1,13 @@
+﻿EXPERIMENT SNAPSHOT,VALUE
+CLS winner (mean validation Macro-F1),0.855130087
+CLS winner (sample std),0.006814116
+Best new SEG mean selection score,0.69890263
+Curriculum v5 seed 2026 valid Dice,0.712932274
+Curriculum v5 test Dice,0.72153
+UPerNet MiT-B2 test Dice,0.71698
+New classification runs,15
+New segmentation runs,12
+Legacy classification trials,18
+Legacy segmentation trials,23
+Curriculum epoch logs,54
+New epoch log entries,441
