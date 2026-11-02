@@ -1,0 +1,540 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Language and Encoding Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T5,T1]{fontenc}
+\usepackage{lmodern}
+
+% --- Page Geometry ---
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  top=2.5cm,
+  bottom=2.5cm,
+  left=2.5cm,
+  right=2.5cm
+}
+
+% --- Typography & Spacing ---
+\usepackage{microtype}
+\usepackage{setspace}
+\setstretch{1.15}
+\usepackage{parskip}
+\usepackage{float}
+\usepackage{graphicx}
+% --- Mathematics Packages ---
+\usepackage{amsmath,amssymb,amsfonts}
+
+% --- Tables & Arrays ---
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,skip=6pt}
+
+% --- Hyperlinks and Colors ---
+\usepackage{xcolor}
+\definecolor{linkblue}{RGB}{0,51,153}
+\definecolor{citegreen}{RGB}{0,102,51}
+\definecolor{urlteal}{RGB}{0,102,128}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkblue,
+  citecolor=citegreen,
+  urlcolor=urlteal,
+  pdfauthor={Nguyen Thien Bao, Le Huynh Duc Huy, Ha Phuong Thao, Mai Ho Quoc Tuy, Nguyen Ngoc Khanh Uyen, Nguyen Khac Luu Vu},
+  pdftitle={Burn-Depth Classification and Burn-Lesion Segmentation Using Deep Learning: An Empirical Evaluation of Model Complexity, Metric Sensitivity, and False-Positive Restraint on Healthy Skin}
+}
+
+% --- Title, Authors, and Affiliations ---
+\title{
+  \textbf{\Large
+  Burn-Depth Classification and Burn-Lesion Segmentation Using Deep Learning:
+  An Empirical Evaluation of Model Complexity, Metric Sensitivity,
+  and False-Positive Restraint on Healthy Skin}
+}
+
+\author{
+  \textbf{Nguyen Thien Bao$^{1,*}$},
+  \textbf{Le Huynh Duc Huy$^{1}$},
+  \textbf{Ha Phuong Thao$^{1}$}, \\
+  \textbf{Mai Ho Quoc Tuy$^{1}$},
+  \textbf{Nguyen Ngoc Khanh Uyen$^{1}$},
+  \textbf{Nguyen Khac Luu Vu$^{1}$}
+  \\[1.5ex]
+  \small $^{1}$\textit{Institute of Intelligent and Interactive Technologies, College of Technology and Design,} \\
+  \small \textit{University of Economics Ho Chi Minh City (UEH), Ho Chi Minh City, Vietnam}
+  \\[1ex]
+  \small $^{*}$Corresponding author: Nguyen Thien Bao
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+\noindent Existing deep learning approaches for burn evaluation often rely on pooled segmentation metrics evaluated solely on lesion-containing images, concealing false-positive predictions on uninjured skin. This study provides a rigorous empirical evaluation of deep learning models for burn-depth classification (four classes: three burn degrees and one non-burn class; $n = 4{,}686$) and lesion segmentation, with an explicit focus on model complexity, metric aggregation behavior, and false-positive mask generation. Among the five classification architectures, ConvNeXtV2 Nano achieved the highest mean validation Macro-F1 (0.8551 $\pm$ 0.0068 across three seeds). Its separately fine-tuned checkpoint achieved a 4-class Macro-F1 of 0.8559 and accuracy of 0.8576 on the 316-image held-out test split (yielding a Macro-F1 of 0.8078 across the three burn degrees alone), while maintaining low computational complexity (14.99 M parameters). However, image-level classification misclassified 8 of 81 third-degree burn images (9.88\%) as first- or second-degree burns, highlighting a potential risk of severity under-estimation if relying solely on photographic classification. For segmentation, the Curriculum U-Net++ configuration predicted non-empty masks on 7 of 115 non-burn images (6.09\%) on an internal validation subset (Set~A), compared to 114 of 115 (99.13\%) for the manual-only baseline, while maintaining rates of 2.04\%--6.12\% across seeds on the selection set (Set~B, $n = 98$). On an exploratory evaluation cohort ($n = 13$), Curriculum U-Net++ achieved a per-image mean Dice of 0.7215 with zero empty-mask predictions, whereas UPerNet MiT-B2 yielded a higher pooled Dice (0.8100 vs. 0.7330) despite a marginally lower mean Dice (0.7170). Given the small size of the segmentation evaluation cohort, unverified annotations, and potential group leakage, these findings characterize baseline capabilities rather than clinical readiness, highlighting the necessity of reporting per-image metrics alongside negative-image false-positive rates.
+\end{abstract}
+
+\vspace{1ex}
+\noindent\textbf{Keywords:} Burn-depth classification, Burn-lesion segmentation, False-positive restraint, Metric sensitivity, Deep learning, Medical imaging.
+
+\vspace{2ex}
+
+\section{Introduction}
+
+Visual assessment of burn wounds underlies critical decisions regarding emergency first care, triage, fluid resuscitation, and surgical referral \cite{boissin2022}. Burn severity is clinically characterized by the total body surface area affected and by the histological depth of damaged tissue \cite{boissin2022}. In routine emergency and primary care settings, both dimensions are predominantly estimated through visual inspection and tactile palpation. However, misdiagnosis has been documented as frequent, even among experienced surgical staff \cite{boissin2022}. In a prospective telemedicine evaluation of remote consultation, expert estimates of burn size from mobile digital images exhibited high agreement with bedside physical examinations (intraclass correlation coefficient of 0.82), whereas diagnostic agreement for burn depth dropped markedly to 0.53 \cite{blom2020}. Image-based artificial intelligence is therefore an active area of investigation to assist frontline practitioners in standardized wound assessment.
+
+Two distinct computational paradigms are commonly formulated for digital photograph analysis. Burn-depth classification assigns an image-level categorical label predicting overall injury severity. Burn-lesion segmentation delineates dense, pixel-level spatial boundaries identifying suspected damaged tissue. While these two tasks offer complementary diagnostic perspectives of the same injury, they differ fundamentally in operational objectives, output dimensions, evaluation metrics, and clinical failure modes. Neither task is presented here as an autonomous substitute for specialist clinical diagnosis.
+
+Deep convolutional neural networks have been widely investigated for burn-depth classification \cite{cirillo2019} and lesion segmentation [4, 5], while recent studies explore real-time detection architectures from the YOLO family for multi-degree burn grading \cite{sevik2026}. While comparable object segmentation models from engineering domains (such as YOLOv11-seg applied to rigid objects on construction sites \cite{he2024}) achieve high precision under well-defined physical boundaries, transferring segmentation methods to medical burn assessment introduces distinct challenges owing to the amorphous morphology, ill-defined boundaries, and complex visual gradation of damaged skin tissue. Evaluation methodologies, however, vary substantially across published benchmarks. Classification requires rigorous multi-class disaggregation, as overall accuracy frequently masks catastrophic under-triage on minority or ambiguous severity grades. Segmentation requires quantifying spatial overlap between predicted and reference polygons via Dice similarity coefficients and Intersection over Union (IoU). Existing studies report disparate metrics---such as pixel accuracy and mean IoU \cite{liu2021}, per-image sensitivity and F1-scores \cite{boissin2023}, or bounding-box mean average precision \cite{sevik2026}---precluding direct cross-study synthesis. Furthermore, spatial overlap metrics evaluated exclusively on wound-positive images fail to characterize how a segmentation model behaves when presented with uninjured anatomical surfaces.
+
+Despite considerable modeling advances, selecting deep learning models for burn assessment demands task-specific empirical evidence encompassing predictive accuracy, parameter complexity, metric aggregation behavior, and false-positive suppression on healthy skin. In particular, conventional overlap metrics can conceal a model's propensity to generate non-empty masks on uninjured images. Among reviewed studies, Boissin et al. \cite{boissin2023} incorporated background skin photographs into training folds and observed that their algorithm predicted spurious burn areas in approximately 20\% of uninjured validation images. However, systematic evaluations reporting negative-image restraint alongside standard Dice and IoU on independent validation cohorts were not reported in the studies reviewed here.
+
+This study aims to empirically evaluate the performance, complexity, and limitations of specialized deep learning models for burn-depth classification and burn-lesion segmentation. Specifically, it compares candidate classification architectures across predictive performance and parameter complexity, evaluates segmentation architectures across multiple overlap metrics, and audits false-positive mask generation on non-burn skin images. Scope framing: This study strictly investigates the standalone empirical performance, model complexity, and error distributions of the core deep learning models for classification and segmentation. It does not represent an evaluation of an end-to-end clinical decision-support system, which would additionally entail image-quality screening, Total Body Surface Area (TBSA) calculation, Abbreviated Burn Severity Index (ABSI) scoring, or interactive first-aid guidance.
+
+The contributions of this study are empirical and concern evaluation and error analysis, not a new architecture:
+
+\begin{enumerate}
+  \item An empirical comparison of candidate burn-depth classification architectures balancing predictive performance against parameter complexity, grounded in inductive bias principles.
+  \item An algebraic and empirical decomposition of burn-lesion segmentation across per-image mean and pooled overlap metrics, exposing metric sensitivity on an exploratory test cohort.
+  \item A quantitative audit of image-level false-positive masks on uninjured skin, demonstrating the divergence between global classification confidence and dense segmentation restraint.
+\end{enumerate}
+
+\section{Related Work}
+
+Prior burn-image benchmarks are structured around diverse task formulations, datasets, architectures, and evaluation criteria. Because published studies employ divergent label taxonomies and unshared data partitions, their reported metrics are presented comparatively in Table~\ref{tab:table1} to illustrate methodological patterns rather than as direct performance rankings.
+
+\subsection{Burn-Depth Classification}
+
+Cirillo et al. \cite{cirillo2019} investigated time-independent burn-depth classification across standard convolutional backbones (VGG-16, GoogLeNet, ResNet-50, and ResNet-101). In 10-fold cross-validation, ResNet-101 achieved the highest mean classification accuracy (81.66\%), but individual fold performance ranged widely from 72.06\% to 88.06\%, demonstrating that aggregate accuracy is acutely sensitive to dataset partitioning.
+
+Boissin et al. \cite{boissin2023} trained deep convolutional networks to differentiate acute burns requiring surgical intervention from those manageable conservatively. On a set-aside test cohort of 332 clinical images, the classifier achieved an area under the ROC curve (AUC) of 0.885, with high sensitivity (92.5\%) but poor specificity (53.6\%). While 86 of 93 surgical cases were correctly identified (sensitivity 92.5\%, FN = 7), 111 of 239 non-surgical burns were misclassified as requiring surgery (FP = 111), whereas 128 were correctly identified as non-surgical (TN = 128, specificity 53.6\%). This pronounced imbalance illustrates that high aggregate sensitivity frequently coexists with substantial clinical over-triage, a limitation obscured by overall accuracy.
+
+Şevik and Mutlu \cite{sevik2026} evaluated modern single-stage instance segmentation models (YOLOv8-seg and YOLOv11-seg) across four burn degrees on a curated dataset of 1,478 labeled photographs. Their top-performing YOLOv11x-seg model attained an overall F1-score of 0.87 and mAP@0.5 of 0.91. However, class-specific normalized confusion matrices revealed recurring misclassification between adjacent burn depths (such as second-degree versus third-degree burns), and the authors emphasized that images were captured under relatively controlled lighting conditions. Similarly, Yıldız et al. \cite{yildiz2024} applied YOLOv7 to 1,320 burn images, reporting an mAP@0.5 of 75.0\%.
+
+These studies demonstrate that aggregate metrics conceal critical diagnostic failure modes. Performance spread across folds \cite{cirillo2019}, confusion between adjacent depth categories \cite{sevik2026}, and sensitivity-specificity divergence \cite{boissin2023} highlight the necessity of evaluating macro-averaged F1, class-wise precision and recall, and model parameter complexity simultaneously.
+
+\subsection{Burn-Lesion Segmentation and Metric Aggregation}
+
+Liu et al. \cite{liu2021} compiled 1,200 labeled burn crops from 516 raw clinical photographs (960 for training and 240 for testing), comparing various encoder-decoder architectures. For binary lesion delineation (burn vs. background), HRNetV2-C1 achieved an IoU of 0.8467, pixel accuracy of 0.9403, and Dice coefficient of 0.9170. However, when segmenting multiple burn depth zones simultaneously, the mean IoU decreased to 0.5144 due to severe ambiguity along intermediate wound margins. Furthermore, the authors observed that networks frequently delineated unlabeled erythematous skin regions, reflecting incomplete reference annotations.
+
+Boissin et al. \cite{boissin2023} evaluated a lesion identifier trained on 1,105 burn images and 536 background skin photographs. On an independent test set of 332 images, the model recorded a mean per-image sensitivity of 86.9\%, precision of 83.4\%, and F1-score of 82.9\% (with a wide sensitivity standard deviation of 19.1 percentage points). Notably, sensitivity varied according to skin pigmentation (78.6\% on light vs. 89.3\% on dark skin tones), underscoring demographic sensitivities in visual wound assessment.
+
+Crucially, prior literature exhibits a major divide in how spatial overlap metrics are aggregated across a test cohort. In \cite{boissin2023}, pixel-level sensitivity, precision, and F1 were calculated on each image individually and subsequently averaged across the cohort. In \cite{liu2021}, metrics were derived from aggregate pixel counts pooled across the entire test set. Mathematically, Pooled Dice assigns greater weight to images with larger combined predicted and reference mask areas $\sum (|P_i| + |G_i|)$. Consequently, Pooled Dice is mathematically dominated by extensive lesions, whereas per-image Mean Dice reflects image-level consistency and is heavily penalized by complete lesion omission (where $\text{Dice}_i = 0$). These two aggregation schemes answer fundamentally different clinical questions and must not be conflated.
+
+\subsection{False-Positive Predictions on Non-Burn Images}
+
+Quantifying segmentation behavior on uninjured skin is critical for preventing unnecessary clinical interventions. Among reviewed studies, only Boissin et al. \cite{boissin2023} examined non-burn images, incorporating 536 background photographs containing diverse human skin. In cross-validation, their model generated a false-positive burn prediction (defined as $\ge$ 1\% image area) on 13.1\% of training images and 20.0\% of validation images without burns. However, these background photographs were omitted from their final held-out test cohort. In \cite{liu2021} and \cite{sevik2026}, non-burn pixels were evaluated only as background within active burn images, without a dedicated image-level evaluation on uninjured subjects.
+
+The critical metric examined in this paper is the image-level non-empty-mask rate: the proportion of non-burn images for which a model generates a non-empty predicted mask (defined as at least one pixel satisfying p $\ge$ 0.50). This metric directly assesses whether an algorithm exhibits restraint on healthy anatomical surfaces.
+
+\subsection{Synthesis and Research Gap}
+
+Prior benchmarks have established deep learning feasibility for burn classification and segmentation, but leave critical empirical questions open: how modern classification backbones compare under uniform optimization protocols, how metric aggregation alters segmentation rankings, and how segmentation models behave on uninjured skin. This study provides empirical evidence addressing these specific gaps. Table~\ref{tab:table1} summarizes the characteristics of prior studies.
+
+\begin{table}[htbp]
+\setlength{\tabcolsep}{3pt}
+\centering
+\caption{Summary of reviewed deep learning studies in burn assessment.}
+\label{tab:table1}
+\footnotesize
+\small
+
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.9cm} >{\raggedright\arraybackslash}p{2.1cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.1cm} >{\raggedright\arraybackslash}p{1.8cm} >{\raggedright\arraybackslash}p{1.9cm} >{\raggedright\arraybackslash}X}\toprule
+\textbf{Study} & \textbf{Task} & \textbf{Dataset} & \textbf{Models} & \textbf{Metrics} & \textbf{Negative-image analysis} & \textbf{Relevant limitation} \\
+\midrule
+Cirillo et al., 2019 \cite{cirillo2019} & Burn-depth classification & Not reported in the material used & VGG-16, GoogLeNet, ResNet-50, ResNet-101 & Accuracy in 10-fold cross-validation & Not reported & Dataset and labels not available here; spread across folds \\
+\addlinespace
+Liu et al., 2021 \cite{liu2021} & Segmentation of burn vs.\ no burn and depth areas & 1,200 labeled images from 516 raw photographs (960 train, 240 test) & HRNetV2-C1 and ResNet-based encoder-decoders & IoU, pixel accuracy, Dice & Not reported as separate image-level analysis & Incomplete labeling, confusion of similar depths, predicted unlabeled areas \\
+\addlinespace
+Boissin et al., 2023 \cite{boissin2023} & Burn identification; surgical need classification & 1,105 burn images; 536 background skin images & Deep convolutional network; custom architectures & Image-level sensitivity, specificity, accuracy, AUC & Evaluated during training and validation & Specificity was 53.6\% on 332 clinical test images (111/239 non-surgical misclassified) \\
+\addlinespace
+\c{S}evik \& Mutlu, 2026 \cite{sevik2026} & Segmentation-based 4-degree classification & 1,478 labeled burn images (1,034 train, 148 val, 296 test) & YOLOv8-seg, YOLOv11-seg (nano to extra-large) & Precision, recall, mAP50, mAP50-95 & Not reported & External validation split was not reported; evaluated on active burn crops \\
+\addlinespace
+Y\i ld\i z et al., 2024 \cite{yildiz2024} & Segmentation and classification & 1,320 images (80\% train, 20\% test) & YOLOv8 variants & Precision, recall, mAP50 & Not reported & Evaluated only on burn crops; no separate uninjured evaluation \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Method}
+
+\subsection{Study Design and Task Definition}
+
+This study is designed as an empirical evaluation of deep learning models across two decoupled tasks on burn photographs. The classification task maps an input photograph to one of four mutually exclusive categorical classes: \texttt{degree\_1}, \texttt{degree\_2}, \texttt{degree\_3}, or \texttt{None}. The \texttt{None} class indicates the complete absence of burn trauma, but does not imply the absence of other dermatological conditions or benign skin variations.
+
+The segmentation task predicts a single-channel spatial probability map converted to a binary lesion mask at a fixed decision threshold of 0.50, where 1 indicates suspected burn tissue and 0 represents uninjured background. A predicted mask is formally defined as non-empty if at least one pixel satisfies the probability threshold of p $\ge$ 0.50 (i.e., absolute pixel area > 0, without post-hoc connected-component filtering or minimum area rejection). Reference masks were derived from manual polygon annotations. Polygons delineate suspected wound boundaries and do not represent histopathologically verified depth margins.
+
+\subsection{Data Compilation, Stratification, and Isolation Caveats}
+
+Classification dataset: Digital photographs were aggregated from open repositories, primarily the Skin Burn Detection dataset by Fares Abbas (543 first-degree, 488 second-degree, and 326 third-degree burn files). Images were imported into Roboflow for cropping, visual filtering, and categorical annotation across four target classes: three burn degrees (\texttt{degree\_1}, \texttt{degree\_2}, \texttt{degree\_3}) and one non-burn class (\texttt{None}). The \texttt{None} class incorporates non-burn skin images, including dermatological photographs from the iToBoS 2024 Skin Lesion Detection dataset. Importantly, `non-burn' signifies the absence of thermal injury and must not be conflated with completely healthy skin, as benign or pathological dermatological lesions may be present. Five Roboflow Universe projects are referenced in project manifests (aa Burn Segmentation, Atiya, Binus, Binussss, and BurnDetectionProject).
+
+\begin{table}[H]
+\centering
+\caption{Class distribution across splits in the classification benchmark.}
+\label{tab:table2}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Class} & \textbf{Train} & \textbf{Validation} & \textbf{Test} & \textbf{Total} & \textbf{Proportion} \\
+\midrule
+\texttt{degree\_1} & 1,076 & 110 & 73  & 1,259 & 26.87\% \\
+\texttt{degree\_2} & 1,021 & 97  & 83  & 1,201 & 25.63\% \\
+\texttt{degree\_3} & 834   & 140 & 81  & 1,055 & 22.51\% \\
+\texttt{None}     & 977   & 115 & 79  & 1,171 & 24.99\% \\
+\midrule
+\textbf{Total}    & 3,908 & 462 & 316 & 4,686 & 100.00\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The final classification dataset comprises 4,686 RGB photographs partitioned at the image level into 3,908 training (83.40\%), 462 validation (9.86\%), and 316 test images (6.74\%), as detailed in Table~\ref{tab:table2}. Data provenance disclaimer: The polygon masks and four-class categorical labels were aggregated from public curated repositories and web imagery. They reflect internal visual curation and crowd-sourced annotations rather than consensus ground truth validated by an independent expert medical panel. The polygon boundaries delineate suspected wound areas and do not represent histopathologically verified depth margins.
+
+Because individual patient identifiers were unavailable in public community repositories, patient-level data isolation could not be strictly verified. Consequently, multiple photographic crops or temporal sequences originating from the same individual may exist across training, validation, and evaluation splits, posing a potential group leakage risk that could yield optimistic performance estimates.
+
+Near-duplicate filtering was performed using perceptual hashing (pHash) with Hamming distance checks. Training photographs were augmented via RandomResizedCrop to 224 $\times$ 224 pixels, horizontal and vertical flips, random rotation, and ColorJitter. Validation and test images were resized directly to 224 $\times$ 224 pixels and normalized using ImageNet channel statistics.
+
+Segmentation dataset: The segmentation manifest comprises 2,198 training entries, 21 validation records, and 13 test records (Table~\ref{tab:table3}). Training records consist of 300 manual polygon annotations, 921 accepted pseudo-masks generated by a baseline U-Net++ and filtered via automated quality checks, and 977 \texttt{None} images. Prior to curriculum training, 98 \texttt{None} images were withheld for checkpoint selection, leaving 2,100 active source training records (300 manual, 921 pseudo-mask, and 879 \texttt{None}). Images and masks were resized to 320 $\times$ 320 pixels.
+
+\begin{table}[htbp]
+\centering
+\caption{Composition of records across segmentation dataset splits.}
+\label{tab:table3}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Mask Source} & \textbf{Train in Manifest} & \textbf{Train After Holdout} & \textbf{Validation} & \textbf{Test} \\
+\midrule
+Manual polygon       & 300   & 300   & 21  & 13 \\
+Auto-QC pseudo-mask  & 921   & 921   & 0   & 0  \\
+\texttt{None} images & 977   & 879   & 0   & 0  \\
+\texttt{None} holdout& 0     & 0     & 98  & 0  \\
+\midrule
+\textbf{Total}       & 2,198 & 2,100 & 119 & 13 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Data provenance and isolation caveat: The 300 manually annotated segmentation images were derived from approximately 100 photographic source groups. Because patient identifiers were unavailable in community repositories, partitioning was executed at the image level. Consequently, photographic variants originating from the same subject could not be strictly isolated, posing a potential group leakage risk across splits.
+
+\subsection{Classification Models and Standardized Training Protocol}
+
+A total of 15 formal classification runs across 5 architectures (ConvNeXtV2 Nano, DeiT III Small, Swin Tiny, ViT Base/16, and EfficientNetV2-S) and 3 random seeds (42, 123, 2026) were benchmarked under standardized training protocols (batch size 32, 15 epochs on an NVIDIA A100-SXM4-40GB GPU; logged in \texttt{CLS\_Runs.csv}). All models were initialized with pretrained weights from the timm library and fed 224 $\times$ 224 inputs. For each seed, the optimal epoch was selected based on validation Macro-F1 across the 462 validation images. ConvNeXtV2 Nano achieved the highest mean validation Macro-F1 (0.8551 $\pm$ 0.0068) and the highest best-seed validation Macro-F1 (0.8616 on Seed~2026, Epoch~9; see Table~\ref{tab:table4}). During architecture selection, ConvNeXtV2 Nano consistently achieved a binary burn-detection validation recall of 1.0000 across all three seeds (\texttt{CLS\_Runs.csv}), confirming that all burn images were recognized as injuries with zero false negatives against the non-burn class in validation. When evaluated on the 316-image held-out test split, the fine-tuned ConvNeXtV2 Nano checkpoint achieved a 4-class Macro recall of 0.8548 (with per-class recalls of 0.6986 for \texttt{degree\_1}, 0.8193 for \texttt{degree\_2}, and 0.9012 for \texttt{degree\_3}; Table~\ref{tab:table6}), maintaining a perfect test recall of 1.0000 (79/79 images) on the non-burn \texttt{None} class (an exploratory threshold-tuning variant with 0.8513 Macro recall is documented in historical baseline logs (Table~\ref{tab:table4})).
+
+Final Fine-tuned Checkpoint: Following architecture selection, the final deployment model was trained as an independent fine-tuning experiment initialized directly from ImageNet-22k/1k pretrained weights at batch size 64 (\texttt{convnextv2\_nano.fcmae\_ft\_in22k\_in1k}). Reaching its peak validation score at epoch 14 (Val Macro-F1 = 0.8537), this checkpoint was deployed for test evaluation (\texttt{Legacy\_Extra.csv}).
+
+\subsection{Segmentation Framework and Curriculum Training Protocol}
+
+The Curriculum U-Net++ architecture utilizes an ImageNet-pretrained ResNet-34 backbone with dense nested skip connections, producing a 320 $\times$ 320 probability map. In the project documentation, this pipeline is termed `Curriculum U-Net++', representing a mixed-supervision framework with stratified batch sampling (25\% manual, 55\% auto-QC pseudo-masks, and 20\% \texttt{None} images) combined with a staged curriculum schedule: the pool of eligible positive training samples was initialized at 30\% and expanded incrementally to 100\% across the first 75\% of training epochs. 
+
+The compound training loss combines binary cross-entropy with logits and soft Dice loss in equal proportions. Training was conducted using AdamW with batch size 8, 80 steps per epoch, and up to 18 epochs.
+$$\mathcal{L} = 0.5 \times \text{BCEWithLogits} + 0.5 \times (1 - \text{SoftDice})$$
+Checkpoint selection was governed by a compound selection score balancing wound overlap against negative restraint, where NegativeFPR represents the proportion of the 98 held-out \texttt{None} images yielding a non-empty mask after the 0.50 threshold. The best checkpoint was achieved by seed 2026 at epoch 6 (validation Dice 0.7129, selection score 0.7099).
+$$\text{SelectionScore} = \text{ValidationDice} - 0.15 \times \text{NegativeFPR}$$
+The formal benchmark evaluation comprised 27 formal benchmark runs: 15 runs for classification (5 architectures $\times$ 3 seeds) and 12 runs for segmentation model selection (4 architectures $\times$ 3 seeds: UPerNet MiT-B2, SegFormer MiT-B3, SegFormer MiT-B2, and retrained U-Net++). Exploratory notebook experiments, baseline iterations, and the earlier manual-only v6 run were conducted separately in exploratory notebooks and are not counted within these 27 formal benchmark runs. The 13-image manual test set was observed during development and informed operational model selection; it is therefore designated throughout this study as an exploratory test cohort rather than a strictly held-out test set.
+
+\subsection{Evaluation Metrics and Statistical Uncertainty Protocols}
+
+Classification metrics: Overall accuracy, Macro-F1 (unweighted average of class F1-scores), and per-class precision, recall, F1-score, and support are reported on the 316-image test split.
+
+Segmentation metrics: Spatial overlap agreement between the predicted binary mask ($P$) and the reference ground truth polygon ($G$) is quantified via the Dice similarity coefficient and Intersection over Union (IoU):
+$$\text{Dice} = \frac{2 |P \cap G|}{|P| + |G|}$$
+$$\text{IoU} = \frac{|P \cap G|}{|P \cup G|}$$
+Per-image Mean Dice and IoU represent arithmetic averages across individual images. Pooled Dice and IoU aggregate pixel counts across the entire evaluation set prior to calculation.
+
+For segmentation evaluation, we report metrics on an exploratory evaluation cohort of 13 manually annotated burn images. Because this cohort was inspected during model selection and possesses a small sample size ($n = 13$), it serves exclusively to characterize baseline component behavior and metric aggregation traps, rather than establishing out-of-distribution generalization or clinical readiness. A non-empty mask prediction is operationally defined as any output containing at least one pixel exceeding the binary probability threshold of p $\ge$ 0.50 without post-processing connected-component filtering.
+
+Although UPerNet MiT-B2 recorded a marginally higher 3-seed mean selection score (0.6989 vs. 0.6962; \texttt{SEG\_Ranking.csv}), Curriculum U-Net++ v5 yielded the single highest-performing individual checkpoint across all segmentation runs (Seed~2026: SelectionScore = 0.7099, Val Dice = 0.7129; \texttt{Curriculum\_Best.csv}). Furthermore, Curriculum U-Net++ v5 completely eliminated zero-Dice empty-mask predictions (0/13 vs. 1/13 for UPerNet; standardized benchmark logs (Table~\ref{tab:table8})), justifying its selection as the deployed segmentation model.
+
+Statistical uncertainty was evaluated using a paired image-level bootstrap procedure with $B = 10{,}000$ resamples. The 95\% percentile confidence interval for the mean Dice difference between Curriculum U-Net++ v5 and the manual-only v6 baseline spanned zero ([-0.0716, 0.2306]), while the difference between Curriculum U-Net++ v5 and UPerNet MiT-B2 spanned zero ([-0.1803, 0.1231]). In accordance with statistical hypothesis testing theory (Mitchell, Chapter 5), these results confirm that observed performance differences on the small exploratory cohort lack statistical significance.
+
+Non-burn evaluation and Selection Score: The image-level non-empty-mask rate is defined as the number of uninjured images producing at least one predicted lesion pixel (p $\ge$ 0.50, minimum predicted area > 0 pixels) divided by the total number of uninjured images evaluated. Checkpoint selection during training was governed by a compound selection score balancing wound overlap against negative restraint on Set~B: 
+$$\text{SelectionScore} = \text{ValidationDice} - 0.15 \times \text{NegativeFPR}$$
+And the \text{NegativeFPR} represents the proportion of the 98 held-out non-burn images in Set~B yielding a non-empty mask.
+$$\text{NegativeFPR} = \frac{N_{\text{non-empty}}}{98}$$
+For each candidate architecture across three random seeds (seeds 42, 123, 2026), the checkpoint achieving the highest SelectionScore was retained. In model selection benchmarking (Table~\ref{tab:table9}), the reported metrics represent the arithmetic mean across the seed-optimal checkpoints, accompanied by the sample standard deviation (logged in \texttt{SEG\_Ranking.csv} and \texttt{Curriculum\_Best.csv}). 
+$$\text{MeanScore} = \frac{1}{3} \sum_{s \in S} \text{SelectionScore}_s$$
+$$\text{MeanFPR} = \frac{1}{3} \sum_{s \in S} \text{NegativeFPR}_s$$
+
+\subsection{False-Positive-Mask Analysis Protocol}
+
+Negative evaluations were conducted across two distinct cohorts:
+
+Set~A (Internal Negative Validation Subset): 115 \texttt{None} images drawn from the classification validation split, used to benchmark false-positive mask suppression between the manual-only baseline and the curriculum model at a 0.50 threshold. Because the segmentation training manifest incorporates 977 \texttt{None} training entries (matching the classification training split), Set~A cannot be certified as an independent external test set and is treated transparently as an internal negative validation subset. Furthermore, whether Set~A and Set~B share overlapping source subjects or augmentation variants has not been formally verified in project manifests, representing an additional evaluation limitation.
+
+Set~B (Checkpoint Selection Holdout): 98 \texttt{None} images withheld prior to curriculum training and incorporated into the checkpoint selection score. Because Set~B actively guided model selection, its metrics reflect selection optimization rather than independent test performance.
+
+\subsection{Reproducibility and Protocol Audit}
+
+Training logs, model checkpoints (\path{convnextv2\_Burn\_4class\_best.pth} and \path{best\_random\_curriculum\_seed2026.pt}), and evaluation scripts are preserved in project repositories. To maintain academic integrity and provide an exhaustive experimental record, Table~\ref{tab:table4} synthesizes the verification status and log sources for all formal classification runs, segmentation model-selection runs, and test benchmarks.
+
+\begin{table}[H]
+\centering
+\caption{Reproducibility and Experimental Transparency Audit Table.}
+\label{tab:table4}
+\small
+\begin{tabularx}{\textwidth}{p{4.2cm} p{3.2cm} X}
+\toprule
+\textbf{Audit Dimension} & \textbf{Transparency Status} & \textbf{Experimental Evidence \& CSV Log Source} \\
+\midrule
+\textbf{Classification Benchmark} & 15 formal runs audited & 5 candidate architectures $\times$ 3 seeds (42, 123, 2026) at batch size 32. ConvNeXtV2 Nano Seed 2026 achieved top val Macro-F1 (0.8616, Best Epoch 9; \texttt{CLS\_Runs.csv}). \\
+\addlinespace
+\textbf{Final Classification Deploy} & Batch size 64 fine-tuned & Independent experiment fine-tuned from ImageNet-22k/1k weights (\texttt{convnextv2\_nano.fcmae\_ft\_in22k\_in1k}) at batch size 64; reached 0.8559 test Macro-F1 (\texttt{Legacy\_Extra.csv}). \\
+\addlinespace
+\textbf{Binary Detection \& Multi-Class Test Audit} & Fully verified & Binary Burn Recall = 1.0000 across validation seeds (zero burn images misclassified as \texttt{None} in validation; \texttt{CLS\_Runs.csv}). On the 316-image test split, Test Recall for \texttt{None} = 1.0000 (79/79), while individual burn recalls are \texttt{degree\_1} = 0.6986, \texttt{degree\_2} = 0.8193, \texttt{degree\_3} = 0.9012, yielding a test Macro recall of 0.8548. 4-class Macro-F1 = 0.8559; 3-class burn Macro-F1 = 0.8078 (Table~\ref{tab:table6}). \\
+\addlinespace
+\textbf{Segmentation Benchmark} & 12 formal runs audited & 4 candidate architectures $\times$ 3 seeds. Curriculum U-Net++ Seed 2026 selected at Epoch 6 ($\text{SelectionScore} = 0.7099$, $\text{ValDice} = 0.7129$, $\text{NegativeFPR} = 2.04\%$; \texttt{Curriculum\_Best.csv}). \\
+\addlinespace
+\textbf{13-Image Pairwise Audit} & Logged in \texttt{Final\_Test.csv} & Curriculum v5 ($\text{MeanDice} = 0.7215$, Empty = 0/13) vs.\ UPerNet MiT-B2 ($\text{MeanDice} = 0.7170$, Empty = 1/13, Win count = 9/13). \\
+\addlinespace
+\textbf{Mask Thresholding Rule} & Standardized rule & Binary probability threshold $p \ge 0.50$, minimum mask area $> 0$ pixels (unfiltered baseline). \\
+\addlinespace
+\textbf{Data Isolation Caveat} & Acknowledged limitation & Image-level split enforced. Set~A ($n = 115$) = internal negative validation subset. Set~B ($n = 98$) = selection set. Potential group leakage acknowledged due to multi-crop variants from $\approx 100$ photographic groups. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Results and Discussion}
+
+\subsection{Burn-Depth Classification Performance}
+
+\begin{table}[H]
+\centering
+\caption{Classification candidate performance across three random seeds in model selection.}
+\label{tab:table5}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Parameters (M)} & \textbf{Val Macro-F1 (Mean $\pm$ SD)} & \textbf{Best-Seed Val Macro-F1} & \textbf{Test Macro-F1} \\
+\midrule
+ConvNeXtV2 Nano         & 14.99 & $0.8551 \pm 0.0068$ & 0.8616 & 0.8559\textsuperscript{*} \\
+DeiT III Small          & 21.68 & $0.8520 \pm 0.0056$ & 0.8584 & Not reported \\
+Swin Transformer Tiny   & 27.52 & $0.8490 \pm 0.0082$ & 0.8584 & Not reported \\
+ViT Base/16             & 85.80 & $0.8411 \pm 0.0038$ & 0.8452 & Not reported \\
+EfficientNetV2-S        & 22.16 & $0.8254 \pm 0.0088$ & 0.8319 & Not reported \\
+\bottomrule
+\end{tabular}%
+}
+\vspace{0.3ex}
+\flushleft
+\footnotesize\textit {Note:} Columns 3 and 4 report validation Macro-F1 across three random seeds (batch size 32, 15 epochs) in the standardized model selection phase. Column 5 reports test Macro-F1 on the 316-image held-out test split for the final ConvNeXtV2 Nano checkpoint fine-tuned separately at batch size 64 (epoch 14); remaining candidates were not evaluated on the test split.
+\end{table}
+
+As reported in Table~\ref{tab:table5} and Figure~\ref{fig:figure1}, ConvNeXtV2 Nano attained the highest average validation Macro-F1 (0.8551 $\pm$ 0.0068) and the highest best-seed validation score (0.8616 on Seed~2026, Epoch~9) among the evaluated candidate architectures, while possessing the smallest parameter count (14.99 M). DeiT III Small achieved a closely comparable Macro-F1 (0.8520 $\pm$ 0.0056) with 21.68 M parameters. ViT Base/16, despite possessing 85.80 M parameters (5.7 times larger than ConvNeXtV2 Nano), ranked fourth (0.8411 $\pm$ 0.0038), while EfficientNetV2-S obtained the lowest mean (0.8254 $\pm$ 0.0088).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Picture1.png}
+    \caption{Multi-seed classification architecture selection results across five deep learning backbones. Bars represent mean validation Macro-F1 across three random seeds (42, 123, 2026), with error bars indicating sample standard deviation. ConvNeXtV2 Nano achieved superior performance and consistency while possessing the smallest parameter count (14.99 M).}
+    \label{fig:figure1}
+\end{figure}
+
+The competitive performance of ConvNeXtV2 Nano (14.99 M parameters, mean validation Macro-F1 0.8551 $\pm$ 0.0068) relative to ViT Base/16 (85.80 M parameters, 0.8411 $\pm$ 0.0038) is consistent with inductive bias principles in machine learning (Mitchell \cite{mitchell1997}, Chapter 3). On moderately sized photographic cohorts, convolutional architectures naturally leverage translational equivariance and local spatial priors. However, parameter count alone does not establish reduced overfitting; differences in pretraining scale (e.g., ConvNeXtV2 pretrained with FCMAE on ImageNet-22k before fine-tuning on ImageNet-1k, compared to standard ImageNet-1k ViT checkpoints) and architectural optimization dynamics also contribute substantially to the observed validation margin.
+
+\begin{table}[htbp]
+\centering
+\caption{Class-wise test performance of the final fine-tuned ConvNeXtV2 Nano checkpoint on the 316-image held-out test split (batch size 64).}
+\label{tab:table6}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} & \textbf{Test Images} \\
+\midrule
+\texttt{degree\_1}     & 0.8500 & 0.6986 & 0.7669 & 73 \\
+\texttt{degree\_2}     & 0.8831 & 0.8193 & 0.8500 & 83 \\
+\texttt{degree\_3}     & 0.7300 & 0.9012 & 0.8066 & 81 \\
+\texttt{None}         & 1.0000 & 1.0000 & 1.0000 & 79 \\
+\midrule
+\textbf{Macro Average} & 0.8658 & 0.8548 & 0.8559 & 316 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On the 316-image held-out test split (Table~\ref{tab:table6}), the final fine-tuned ConvNeXtV2 Nano model achieved an overall accuracy of 0.8576 and a 4-class Macro-F1 of 0.8559. It is important to contextualize this metric: the four classes comprise three burn severity degrees and one non-burn class (\texttt{None}). Because the non-burn class achieved perfect precision and recall (1.0000 across 79 images), it elevates the overall 4-class unweighted Macro-F1. When calculating Macro-F1 strictly across the three burn severity degrees (\texttt{degree\_1}: 0.7669, \texttt{degree\_2}: 0.8500, \texttt{degree\_3}: 0.8066), the 3-burn-class Macro-F1 is approximately 0.8078 (derived from the rounded per-class F1 scores of the same 4-class model, rather than a separate 3-class model). Reporting both values ensures diagnostic transparency.
+
+Classification errors and potential severity under-estimation: Class-specific error analysis reveals that 8 of 81 degree III images (9.88\%) were classified as degree I or degree II (as recall was 0.9012 with support 81). Because the non-burn class achieved zero false positives and zero false negatives, all 8 misclassified third-degree injuries were assigned to milder burn categories. If an automated decision-support system were to rely solely on image-level visual classification without bedside clinical assessment, such misclassification would present a serious risk of under-estimating burn severity. According to the American Burn Association (ABA) Guidelines for Burn Patient Referral \cite{aba2018}, full-thickness burn injuries warrant prompt specialist consultation and consideration for burn center referral. Specific management---such as resuscitation fluids or surgical debridement---strictly depends on total burn surface area (\%TBSA), anatomical location, and clinical presentation. Misclassifying severe burns as superficial or partial-thickness represents an image-level limitation that could delay timely specialist referral.
+
+While ConvNeXtV2 Nano demonstrated exceptional discrimination on internal test splits, these metrics are derived from retrospective web-sourced data. Preliminary testing outside the curated split indicated occasional misclassification of healthy skin as superficial burns, emphasizing that internal test accuracy must not be conflated with prospective clinical diagnostic readiness.
+
+\subsection{Segmentation Performance and Metric Aggregation Sensitivity}
+
+\begin{table}[htbp]
+\centering
+\caption{Performance comparison between manual-only baseline (v6) and Curriculum U-Net++.}
+\label{tab:table7}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{Set} & \textbf{Metric} & \textbf{Manual-only v6} & \textbf{Curriculum} & \textbf{Difference} \\
+\midrule
+Validation ($n = 21$) & Mean Dice & 0.6478 & 0.7130 & +0.0652 \\
+Validation ($n = 21$) & Mean IoU  & 0.5307 & 0.6067 & +0.0760 \\
+Test ($n = 13$)       & Mean Dice & 0.6592 & 0.7215 & +0.0623 \\
+Test ($n = 13$)       & Mean IoU  & 0.5464 & 0.6014 & +0.0550 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On manual validation and test masks (Table~\ref{tab:table7}), Curriculum U-Net++ achieved superior overlap relative to the manual-only baseline (v6), raising validation Mean Dice from 0.6478 to 0.7130 (+0.0652) and test Mean Dice from 0.6592 to 0.7215 (+0.0623). On the 13 test masks, Curriculum U-Net++ produced a higher Dice score on 9 of 13 images when compared to the manual-only v6 baseline. An exploratory 95\% bootstrap confidence interval for the Mean Dice difference spans [-0.0716, 0.2306]; because it contains zero, the observed improvement lacks statistical significance.
+
+\begin{table}[htbp]
+\centering
+\caption{Direct comparison of two segmentation checkpoints on the 13-image exploratory evaluation set (decision threshold $p \ge 0.50$).}
+\label{tab:table8}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Curriculum U-Net++} & \textbf{UPerNet MiT-B2} \\
+\midrule
+Mean Dice                     & 0.7215          & 0.7170          \\
+Mean IoU                      & 0.6014          & 0.6196          \\
+Pooled Dice                   & 0.7330          & 0.8100          \\
+Pooled IoU                    & 0.5785          & 0.6807          \\
+Images with higher Dice       & 4/13 (30.8\%)   & 9/13 (69.2\%)   \\
+Empty masks on burn images    & 0/13 (0.0\%)    & 1/13 (7.7\%)    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Comparing Curriculum U-Net++ against UPerNet MiT-B2 on the 13-image exploratory evaluation set (Figure~\ref{fig:figure2} and Table~\ref{tab:table8}) illustrates the acute sensitivity of segmentation rankings to metric aggregation. Curriculum U-Net++ achieved a marginally higher per-image Mean Dice (0.7215 vs. 0.7170, a difference of +0.0045). In contrast, UPerNet MiT-B2 achieved superior Dice on 9 of the 13 images (69.2\%) and substantially outperformed Curriculum U-Net++ in Mean IoU (0.6196 vs. 0.6014), Pooled Dice (0.8100 vs. 0.7330), and Pooled IoU (0.6807 vs. 0.5785).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Picture2.png}
+    \caption{Metric aggregation sensitivity on the 13-image exploratory evaluation set. Comparison between Curriculum U-Net++ and UPerNet MiT-B2 across per-image unweighted metrics (Mean Dice, Mean IoU) and cohort-level area-weighted metrics (Pooled Dice, Pooled IoU).}
+    \label{fig:figure2}
+\end{figure}
+
+Metric Sensitivity to Aggregation Scheme: On the 13-image exploratory cohort (standardized benchmark logs (Table~\ref{tab:table8}))), the performance ranking between Curriculum U-Net++ v5 and UPerNet MiT-B2 is acutely sensitive to how metrics are aggregated across images. UPerNet MiT-B2 generated superior predictions on 9 of 13 individual paired images, which drove its higher area-weighted Pooled Dice (0.8100 vs. 0.7330) and Pooled IoU (0.6807 vs. 0.5785). Conversely, Curriculum U-Net++ v5 recorded a marginally higher unweighted per-image Mean Dice (0.7215 vs. 0.7170). While Curriculum U-Net++ v5 avoided complete lesion omission across the cohort (0/13 empty masks) whereas UPerNet produced one empty prediction (1/13 empty masks, zero Dice), the slight margin in per-image Mean Dice (+0.0045) reflects the mathematical sensitivity of unweighted arithmetic averaging to isolated severe score penalties rather than uniform superiority across the evaluation set. Curriculum U-Net++ v5 (26.08M parameters) demonstrated a substantial improvement over the manual-only U-Net++ v6 baseline (Mean Dice 0.7215 vs. 0.6592). When compared paired against UPerNet MiT-B2 (32.53M parameters), UPerNet achieved higher per-image Dice on 9 of the 13 exploratory test images (\texttt{Final\_Test.csv}), though Curriculum U-Net++ maintained higher overall cohort mean Dice. Specifically, the single omission case contributed approximately 0.0677 to the cohort-level Mean Dice difference between Curriculum U-Net++ and UPerNet MiT-B2.
+
+Curriculum U-Net++ produced no empty-mask predictions across the 13 evaluated burn images, whereas UPerNet MiT-B2 suffered one complete omission failure (Dice = 0.0000). While UPerNet's higher pooled metrics mathematically confirm superior aggregate pixel-level agreement across expansive wound areas, attributing this advantage definitively to transformer-based hierarchical attention rather than general model capacity (32.53 M vs. 26.08 M parameters) would require stratified lesion-size ablations on larger cohorts.
+
+Following Mitchell's framework on hypothesis evaluation (\cite{mitchell1997}, Chapter 5), the 95\% paired bootstrap confidence interval for the Mean Dice difference (UPerNet minus Curriculum) spans [-0.1803, 0.1231]. Because the interval contains zero, the observed performance difference lacks statistical significance. With $n = 13$, the high sample variance precludes any claim of general architectural superiority. Furthermore, because the 13 test images were inspected during development and informed the operational choice to retain Curriculum U-Net++, this cohort functions as an exploratory evaluation set rather than a pristine, held-out test set.
+
+\begin{table}[htbp]
+\centering
+\caption{Segmentation candidate performance in model selection round across three random seeds on validation data.}
+\label{tab:table9}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Architecture} & \textbf{Parameters (M)} & \textbf{Mean Dice} & \textbf{Selection Score (Mean $\pm$ SD)} & \textbf{Mean FPR on Set B} \\
+\midrule
+UPerNet MiT-B2                  & 32.53 & 0.6989 & $0.6989 \pm 0.0025$ & 0.00\% \\
+SegFormer MiT-B3                & 44.60 & 0.6963 & $0.6963 \pm 0.0202$ & 0.00\% \\
+SegFormer MiT-B2                & 24.72 & 0.7002 & $0.6961 \pm 0.0080$ & 2.72\% \\
+U-Net++ ResNet-34 (retrained)   & 26.08 & 0.6896 & $0.6774 \pm 0.0087$ & 8.16\% \\
+Curriculum U-Net++ v5 logs      & 26.08 & 0.7018 & $0.6962 \pm 0.0133$ & 3.74\% \\
+\bottomrule
+\end{tabular}
+}
+\vspace{0.3ex}
+\flushleft
+\footnotesize\textit{Note:} Models were trained with random curriculum sampling across seeds 42, 123, 2026. For each seed, the optimal checkpoint was selected using $\text{SelectionScore} = \text{ValidationDice} - 0.15 \times \text{NegativeFPR}$ evaluated on Set~B (98 held-out non-burn images). Column 4 reports the mean SelectionScore $\pm$ sample SD across the three seeds. Column 5 reports the mean image-level non-empty-mask rate (Mean FPR) across the three seeds, calculated as the arithmetic average of the seed-specific false-positive rates on Set~B (\texttt{SEG\_Ranking.csv} and \texttt{Curriculum\_Best.csv}).
+\end{table}
+
+In the validation model selection round (Table~\ref{tab:table9}), UPerNet MiT-B2 achieved the highest average Selection Score (0.6989 $\pm$ 0.0025) and maintained 0.00\% NegativeFPR across Set~B, closely followed by SegFormer MiT-B3 (0.6963 $\pm$ 0.0202) and SegFormer MiT-B2 (0.6961 $\pm$ 0.0080). The small performance margin between UPerNet and Curriculum U-Net++ (0.6962 $\pm$ 0.0133 in earlier logs) confirms that both architectures represent viable candidates, with the optimal choice depending on whether clinical priority is assigned to image-level lesion omission avoidance or expansive wound boundary precision.
+
+\subsection{False-Positive Mask Generation on Uninjured Skin}
+
+\begin{table}[H]
+\centering
+\caption{Image-level non-empty-mask rate on uninjured skin images (\texttt{None}) at a 0.50 decision threshold.}
+\label{tab:table10}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.6cm} c c X}
+\textbf{Set} & \textbf{Model} & \textbf{Non-empty / Total} & \textbf{Rate} & \textbf{Role of the Set} \\
+\midrule
+A (115 images from classification val) & Manual-only U-Net++ v6       & 114/115 & 99.13\% & Comparison of two models \\
+A & Curriculum U-Net++           & 7/115   & 6.09\%  & Comparison of two models \\
+A & UPerNet MiT-B2               & Not reported & Not reported & Not reported \\
+\midrule
+B (98 held-out images) & Curriculum U-Net++ (seeds 42, 123, 2026) & 6/98, 3/98, 2/98 & 6.12\%, 3.06\%, 2.04\% & Used in checkpoint selection \\
+B & UPerNet MiT-B2 (three seeds) & 0/98    & 0.00\%  & Used in checkpoint selection \\
+B & SegFormer MiT-B3 (three seeds)& 0/98   & 0.00\%  & Used in checkpoint selection \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A key empirical finding is the operational discrepancy between classification and segmentation models on uninjured skin. While the classification backbone achieved perfect precision and recall (1.0000) on non-burn test images, the baseline manual-only segmentation model generated false-positive masks on 99.13\% of uninjured images in Set~A (114 of 115 non-burn images, Table~\ref{tab:table10}). The composite Curriculum U-Net++ training framework---which integrates uninjured negative-image training, pseudo-mask supervision, curriculum sampling, and a negative-penalty checkpoint selection rule ($\text{SelectionScore} = \text{ValDice} - 0.15 \times \text{NegativeFPR}$)---substantially reduced the non-empty-mask rate to 6.09\% on Set~A (7 of 115 images) and 2.04\%--6.12\% across seeds on Set~B (Table~\ref{tab:table10}). Because an isolated component-wise ablation separating negative training images, pseudo-masks, curriculum scheduling, and the selection penalty was not conducted, this reduction must be attributed to the entire composite training configuration rather than the checkpoint penalty factor alone. Furthermore, the operational criterion for false-positive mask prediction flags any output containing at least one pixel satisfying p $\ge$ 0.50. While this zero-tolerance threshold provides high sensitivity for triage screening, it does not convey the spatial extent of false alarms: across the 7 non-empty masks generated by Curriculum U-Net++ on Set~A, predicted lesion areas occupied small, localized patches (median < 1.5\% of total image area), whereas the manual baseline generated expansive false-positive regions (median > 15\% image area) delineating skin folds and shadowing. Future benchmarks should evaluate stratified area thresholds (e.g., $\ge$ 0.1\%, $\ge$ 1\%, and $\ge$ 5\% image area) to assess false-positive severity systematically. Additionally, while UPerNet MiT-B2 recorded 0.00\% non-empty masks on Set~B (98 images), Set~B actively served as the selection set for checkpoint determination, and a 0\% error rate on a selection set does not prove a 0\% error rate on unseen data. Finally, because patient identifiers were unavailable in community repositories, complete independence between Set~A and Set~B cannot be formally guaranteed.
+
+Feature Space Discrepancy between Tasks: It must also be highlighted that the classification and segmentation models were evaluated on distinct negative cohorts (79 held-out test images vs. 115 validation images), serving as separate standalone demonstrations rather than a paired comparison on identical inputs. Nonetheless, this discrepancy illustrates that global classification confidence does not automatically translate into dense spatial restraint: a segmentation model trained exclusively on positive lesion crops naturally develops an unconstrained positive prior, delineating normal anatomical contours, skin folds, and shadows as wounds.
+
+\subsection{Cross-Task Synthesis: Decoupling Depth and Lesion Boundaries}
+
+Classification and segmentation evaluate decoupled clinical competencies. Classification measures global depth discrimination across wound categories, while segmentation evaluates dense pixel-level lesion localization. Figure~\ref{fig:figure3} illustrates end-to-end qualitative inferences exported directly from the deployment notebook across representative burn severities (Degree 1, Degree 2, and Degree 3), displaying input photographs, predicted binary lesion masks, boundary overlays, and 4-class softmax probability distributions. The metrics and failure modes are structurally distinct: Macro-F1 and class recall capture under-triage risks, Dice and IoU capture boundary alignment, and the non-empty-mask rate captures spatial restraint on healthy skin. Reporting overlap metrics on burn wounds alone obscures false-positive tendencies on uninjured skin. Because both models were trained and evaluated independently, this study does not evaluate an integrated pipeline where classification screens segmentation inputs, leaving conditioned dual-branch execution as an open question for future clinical investigation.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{Picture3.png}
+    \caption{Qualitative inference outputs exported from the dual-branch deployment pipeline across representative test cases. Rows display: (Top) partial-thickness blister burn (degree\_1, 95.7\% confidence, 10.9\% mask area); (Middle) second-degree burn on fingers (degree\_2, 94.8\% confidence, 10.4\% mask area); and (Bottom) third-degree burn on limb (degree\_3, 98.3\% confidence, 20.9\% mask area). Columns from left to right display: input clinical photograph, predicted binary lesion mask generated by Curriculum U-Net++ ResNet-34 at 0.50 threshold (Binary mask), wound contour overlay on the input photograph, and 4-class softmax probability distribution predicted by ConvNeXtV2 Nano.}
+    \label{fig:figure3}
+\end{figure}
+\subsection{Methodological and Clinical Limitations}
+
+The findings of this benchmark must be interpreted within the context of several methodological and clinical constraints:
+
+\begin{enumerate}
+  \item \textbf{Small exploratory segmentation cohort ($n = 13$):} Evaluating segmentation models on only 13 test masks introduces substantial estimator variance, rendering aggregate metrics sensitive to single-image failure modes. Because this cohort was inspected during development and informed the decision to retain Curriculum U-Net++, it serves as an exploratory evaluation set rather than an independent held-out benchmark.
+  \item \textbf{Unverified crowd-sourced ground truth:} The 316 classification test images represent a held-out split rather than an externally verified patient-independent cohort. Polygon boundaries and depth labels were compiled from open web and community repositories without formal histopathological verification or multi-center expert consensus panels. Furthermore, the \texttt{None} class contains non-burn skin images (including dermatological lesions from iToBoS) and represents the absence of burn injury rather than strictly healthy, lesion-free skin.
+  \item \textbf{Image-level dataset partitioning and group leakage risk:} The 300 manual training records originated from approximately 100 base photographic groups. Because patient identifiers were unavailable in community repositories, partitioning was executed at the image level. Consequently, photographic variants originating from the same subject could not be strictly isolated, posing a potential group leakage risk across splits that could yield optimistic performance estimates.
+  \item \textbf{Internal negative validation data scope:} Set~A (115 images) represents an internal negative validation subset drawn from the classification validation split rather than an independent external cohort, while Set~B (98 images) actively participated in checkpoint selection score calculation ($\text{SelectionScore} = \text{ValDice} - 0.15 \times \text{NegativeFPR}$). Consequently, a 0.00\% false-positive rate on Set~B reflects selection performance rather than proven generalization on unseen negative distributions. Furthermore, whether Set~A and Set~B share overlapping source subjects remains unverified.
+  \item \textbf{Standalone AI component scope vs. clinical workflow:} This investigation strictly evaluates standalone AI components (classification and segmentation) rather than an integrated clinical decision-support system. While downstream workflows might combine automated lesion segmentation for Estimated TBSA calculation with supplementary ABSI scoring, patient outcomes depend on end-to-end clinician interaction, sensor calibration, and workflow adherence, which lie beyond the scope of this retrospective algorithmic benchmark. All experiments were conducted on static two-dimensional photographs, lacking prospective clinical follow-up, multi-center diversity, or bedside validation.
+\end{enumerate}
+
+\section{Conclusion and Future Work}
+
+\subsection{Conclusion}
+
+This empirical evaluation demonstrates that ConvNeXtV2 Nano provides a highly competitive and parameter-efficient backbone for 4-class burn depth classification (0.8559 test Macro-F1 across four classes, and 0.8078 across the three burn degrees). On the 316-image held-out test split, 8 of 81 third-degree burn images were classified as degree I or II, illustrating a potential risk of severity under-estimation if visual AI predictions are used without clinical correlation. For burn lesion segmentation, our analysis reveals that conventional manual-only baselines suffer from severe false-positive mask generation on uninjured skin (99.13\% on Set~A), whereas the integrated Curriculum U-Net++ framework achieved a markedly lower false-positive rate (6.09\%). On the 13-image exploratory evaluation cohort (\texttt{Final\_Test.csv}), Curriculum U-Net++ v5 completely avoided lesion omission (0/13 empty masks), whereas UPerNet MiT-B2 suffered one complete omission failure (1/13 empty masks). While UPerNet led on 9 of the 13 images and dominated area-weighted pooled metrics (0.8100 vs. 0.7330), Curriculum U-Net++ achieved a higher unweighted per-image Mean Dice (0.7215 vs. 0.7170), underscoring that model selection must be guided by whether image-level lesion omission avoidance or aggregate boundary overlap is prioritized. The single omission case contributed approximately 0.0677 to the cohort-level Mean Dice difference between Curriculum U-Net++ and UPerNet MiT-B2.
+
+These empirical findings indicate that model selection must look beyond aggregate accuracy, report both per-image and area-weighted overlap metrics, and explicitly quantify negative-image restraint. The evaluated models characterize baseline AI capabilities under retrospective benchmarks and do not establish clinical readiness.
+
+\subsection{Future Work}
+
+To advance deep learning models toward safe and effective clinical deployment, future research should focus on five priorities:
+
+\begin{enumerate}
+  \item \textbf{Multi-center prospective cohorts:} Expand segmentation test benchmarks with multi-center clinical photographs validated by expert consensus panels across diverse skin phototypes.
+  \item \textbf{Strict subject-level data isolation:} Eliminate potential group leakage by enforcing strict patient-level splitting and documenting complete audit trails from original patient encounters.
+  \item \textbf{Standardized false-positive evaluation protocols:} Establish formal negative-image benchmarks with pixel-level uninjured ground truth and clinical acceptable-area thresholds.
+  \item \textbf{Dual-branch conditioned pipeline trials:} Design controlled experiments evaluating whether classification screening can safely gate segmentation without risking catastrophic omission on misclassified burns.
+  \item \textbf{Integrated clinical decision-support evaluation:} Validate core deep learning models within end-to-end clinical workflows incorporating Estimated TBSA calculation, supplementary ABSI scoring, and real-time first-aid guidance.
+\end{enumerate}
+
+\begin{thebibliography}{10}
+
+\bibitem{blom2020}
+L.~Blom, ``mHealth for image-based diagnostics of acute burns in resource-poor settings: studies on the role of experts and the accuracy of their assessments,'' \emph{Global Health Action}, vol.~13, no.~1, p. 1802951, 2020. \url{https://doi.org/10.1080/16549716.2020.1802951}
+
+\bibitem{boissin2022}
+C.~Boissin, ``Clinical decision-support for acute burn referral and triage at specialized centres: Contribution from routine and digital health tools,'' \emph{Global Health Action}, vol.~15, no.~1, p. 2067389, 2022. \url{https://doi.org/10.1080/16549716.2022.2067389}
+
+\bibitem{cirillo2019}
+M.~D. Cirillo, R.~Mirdell, F.~Sj{\"o}berg, and T.~D. Pham, ``Time-independent prediction of burn depth using deep convolutional neural networks,'' \emph{Journal of Burn Care \& Research}, vol.~40, no.~6, pp. 857--863, 2019. \url{https://doi.org/10.1093/jbcr/irz103}
+
+\bibitem{boissin2023}
+C.~Boissin, L.~Laflamme, J.~Frans{\'e}n, M.~Lundin, F.~Huss, L.~Wallis, N.~Allorto, and J.~Lundin, ``Development and evaluation of deep learning algorithms for assessment of acute burns and the need for surgery,'' \emph{Scientific Reports}, vol.~13, p. 1794, 2023. \url{https://doi.org/10.1038/s41598-023-28164-4}
+
+\bibitem{liu2021}
+H.~Liu, K.~Yue, S.~Cheng, W.~Li, and Z.~Fu, ``A framework for automatic burn image segmentation and burn depth diagnosis using deep learning,'' \emph{Computational and Mathematical Methods in Medicine}, vol. 2021, p. 5514224, 2021. \url{https://doi.org/10.1155/2021/5514224}
+
+\bibitem{sevik2026}
+U.~\c{S}evik and O.~Mutlu, ``ABC-YOLO: Automated skin burn depth classification using YOLO architectures,'' \emph{PLOS ONE}, vol.~21, no.~3, p. e0344042, 2026. \url{https://doi.org/10.1371/journal.pone.0344042}
+
+\bibitem{he2024}
+L.~He, Y.~Zhou, L.~Liu, and J.~Ma, ``Research and application of YOLOv11-based object segmentation in intelligent recognition at construction sites,'' \emph{Buildings}, vol.~14, no.~12, p. 3777, 2024. \url{https://doi.org/10.3390/buildings14123777}
+
+\bibitem{yildiz2024}
+M.~Y{\i}ld{\i}z, Y.~Sarpda{\u{g}}{\i}, M.~Okuyar, M.~Yildiz, N.~{\c{C}}iftci, A.~Elkoca, et~al., ``Segmentation and classification of skin burn images with artificial intelligence: Development of a mobile application,'' \emph{Burns}, vol.~50, no.~4, pp. 966--979, 2024. \url{https://doi.org/10.1016/j.burns.2024.01.007}
+
+\bibitem{mitchell1997}
+T.~M. Mitchell, \emph{Machine Learning}. New York, NY, USA: McGraw-Hill, 1997.
+
+\bibitem{aba2018}
+American~Burn~Association, \emph{Advanced Burn Life Support (ABLS) Provider Manual}. Chicago, IL, USA: American Burn Association, 2018.
+
+\end{thebibliography}
+\end{document}
