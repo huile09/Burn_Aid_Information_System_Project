@@ -1,13 +1,11 @@
-# BurnAid AI: Hệ Thống Hỗ Trợ Đánh Giá Bỏng & Sơ Cứu Tiền Viện Bằng Học Sâu
-
+# BurnAid AI: BURN ASSESSMENT AND FIRST-AID GUIDANCE INFORMATION SYSTEM
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-orange)](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
 [![Kaggle Dataset](https://img.shields.io/badge/Kaggle-Dataset-20BEFF.svg)](https://www.kaggle.com/datasets/fareselmenshawii/skin-burn-dataset)
 
 ---
-
+[English below]
 ## Liên Kết Quan Trọng (Important Links)
 
 * **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
@@ -150,8 +148,180 @@ Mở trình duyệt web và truy cập địa chỉ:
   * Nguyễn Ngọc Khánh Uyên
   * Nguyễn Khắc Lưu Vũ
 * **Đơn vị:** Viện Công nghệ Thông minh và Tương tác, Đại học Kinh tế Thành phố Hồ Chí Minh (UEH).
-
 ---
 
 ## Tuyên Bố Miễn Trừ Trách Nhiệm Y Khoa
 * **Tuyên bố y tế (Medical Disclaimer):** BurnAid AI là hệ thống hỗ trợ ra quyết định mang tính chất tham khảo học thuật và sơ cứu ban đầu, không thay thế chẩn đoán chuyên khoa của bác sĩ. Trong các trường hợp bỏng nặng, cần liên hệ ngay cơ sở y tế gần nhất hoặc gọi cấp cứu 115.
+------------------------------------------------------------------
+
+---
+
+## Important Links
+
+- **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
+- **Full Dataset (Kaggle):** [Kaggle Skin Burn Detection Benchmark (4,686 images)](https://www.kaggle.com/datasets/fareselmenshawii/skin-burn-dataset)
+- **Pretrained Model Weights (Google Drive):** [Download ConvNeXtV2 & U-Net++ Models](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)
+- **Project Report (PDF):** [`report/IS.report.pdf`](report/IS.REPORT.pdf)
+- **Scientific Research Paper (LaTeX):** [`report/paper/main.tex`](report/paper/GROUP_3_PAPER.pdf)
+- **Presentation Slides (PDF):** [`slides/Bai_Thuyet_Trinh_BurnAid.pdf`](slides/IS.SLIDES.pdf)
+
+---
+
+## Project Overview
+
+**BurnAid AI** is an AI-powered burn assessment and first-aid guidance information system that integrates Computer Vision and Generative AI (GenAI/RAG). The system aims to support the public and frontline healthcare professionals in rapidly assessing burn severity, estimating the Total Body Surface Area burned (%TBSA), and providing emergency first-aid recommendations in accordance with Vietnam's Ministry of Health Decision No. 635/QĐ-BYT.
+
+### Core Features
+
+1. **Two-Stage Computer Vision Pipeline:**
+   - **Stage 1 – Burn Depth Classification:** A ConvNeXtV2-Nano architecture (14.99M parameters) classifies burn images into four categories: Degree I (Erythema), Degree II (Blistering), Degree III (Necrosis), and Healthy Skin (No Burn). The model achieves a Macro-F1 score of 0.8559 and an Accuracy of 0.8576 on a test set of 316 images.
+   - **Stage 2 – Burn Lesion Segmentation:** A Curriculum U-Net++ architecture with a ResNet-34 backbone accurately delineates the boundaries of injured tissue. It achieves a Mean Dice score of 0.7215 on the test set while reducing false-positive masks on healthy skin to 6.09%, compared with 99.13% for the conventional model.
+
+2. **Vietnamese Clinical %TBSA Calculation Rules:** Integrates the 1-3-6-9-18 rule developed by Professor Lê Thế Trung and a 22-region anatomical body map. First-degree burns are assigned 0% TBSA in accordance with international medical standards established by the American Burn Association (ABA).
+
+3. **Fluid Resuscitation Protocol and Mortality Risk Assessment:** Automatically calculates the fluid requirements during the first 24 hours using the Baxter/Parkland formula and estimates mortality risk using the Abbreviated Burn Severity Index (ABSI).
+
+4. **Prehospital Emergency Safety Override (115):** When third-degree burns, extensive burn areas, or suspected inhalation injuries are detected, the system automatically activates an emergency alert prompting users to contact Vietnam's emergency medical service at 115.
+
+5. **Intelligent RAG-Based Medical Assistant:** Integrates a medical knowledge base containing 2,274 burn-related text chunks with the Groq LLM, while supporting an offline rule-based fallback mode in case of network connectivity issues.
+
+6. **Unified Native Web Interface:** A Single Page Application (SPA) built with HTML5, Tailwind CSS, and JavaScript, supporting direct camera access on both mobile devices and desktop computers.
+
+---
+
+## Repository Structure
+
+The project directory is organized as follows:
+
+```text
+BurnAid_AI/
+├── README.md                # Project overview, Kaggle dataset, demo links, and setup instructions
+├── requirements.txt         # List of required Python dependencies
+├── .gitignore               # Excludes files that should not be uploaded (.env, __pycache__, cache, etc.)
+│
+├── code/                    # Complete system source code
+│   ├── app/                 # Web application, REST API server, RAG, and database
+│   │   ├── api_server.py    # FastAPI / Starlette REST API server
+│   │   ├── burn_aid_prototype.html # Single Page Application web frontend
+│   │   ├── clinical_rules.py# Clinical rules module: Lê Thế Trung %TBSA, Parkland, and ABSI
+│   │   ├── burn_rag.py      # RAG-based medical consultation module integrated with Groq LLM
+│   │   ├── database.py      # SQLite database management module
+│   │   ├── knowledge_base_burns.txt # Medical knowledge base containing 2,274 text chunks
+│   │   └── burnaid.db       # Sample initialized SQLite database
+│   ├── models/              # Deep learning model weights and documentation
+│   │   ├── convnextv2_burn_4class_best.pth  # ConvNeXtV2 classification weights (57.2 MB)
+│   │   ├── best_random_curriculum_seed2026.pt # U-Net++ segmentation weights (99.7 MB)
+│   │   └── README.md        # Google Drive download links and architecture specifications
+│   ├── notebooks/           # Model training and evaluation Jupyter Notebooks
+│   │   └── Burn_AID_Notebook.ipynb
+│   ├── experiments/         # Training logs and experimental evaluation results
+│   │   └── Burn_Training_History.xlsx
+│   ├── assets/              # Visual resources (Professor Lê Thế Trung's anatomical body proportion diagram)
+│   │   └── body_proportions_le_the_trung.png
+│   └── Chay_He_Thong.bat    # One-click startup script for Windows
+│
+├── data/                    # Contains a small collection of sample images for quick testing
+│   ├── README.md            # Sample image descriptions and link to the full Kaggle dataset
+│   ├── test_burn_degree2.jpg# Sample second-degree burn image (partial-thickness burn with blisters)
+│   ├── test_burn_degree3.jpg# Sample third-degree burn image (deep necrotic tissue)
+│   ├── test_low_confidence_burn.jpg # Sample complex borderline burn case
+│   └── test_normal_skin.jpg # Sample normal healthy skin image (for testing false-positive mask suppression)
+│
+├── report/                  # Project report and scientific research paper
+│   ├── IS.REPORT.pdf           # Project report (PDF format)
+│   └── paper/               # Scientific research paper written in LaTeX
+│       ├── main.tex         # IEEE-format LaTeX source file
+│       ├── GROUP_03_PAPER  # Paper PDF version
+│       └── traininglog/    # CSV training logs used in the paper
+│
+└── slides/                  # Presentation materials
+    ├── IS.SLIDES.pdf       # Project presentation slides (PDF format)
+```
+
+---
+
+## Installation and Quick Start
+
+### 1. System Requirements
+
+- Python 3.10 or later.
+- An NVIDIA GPU is recommended (at least 4 GB VRAM), or a CPU with at least 4 cores. The system also supports CPU-only execution.
+
+### 2. Environment Setup
+
+Open Terminal / Command Prompt in the project's root directory:
+
+```bash
+# Create a virtual environment (recommended)
+python -m venv venv
+
+# Activate the virtual environment:
+
+# Windows:
+venv\Scripts\activate
+
+# Linux/macOS:
+source venv/bin/activate
+
+# Install all required dependencies:
+pip install -r requirements.txt
+```
+
+### 3. Download Pretrained Model Weights
+
+Due to their relatively large file sizes, the pretrained model weights are securely hosted on Google Drive:
+
+- **[Download pretrained model weights from Google Drive](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)**
+- Download the following two files and place them in the `code/models/` directory:
+  - `convnextv2_burn_4class_best.pth`
+  - `best_random_curriculum_seed2026.pt`
+
+### 4. Launch the Application
+
+#### Method 1: One-Click Startup on Windows
+
+Double-click the following file:
+
+```text
+code/Chay_He_Thong.bat
+```
+
+The script automatically checks the Python environment and installed dependencies, frees the required network port, and launches the application interface.
+
+#### Method 2: Launch via Command Line
+
+```bash
+cd code/app
+python api_server.py
+```
+
+Open your web browser and navigate to:
+
+**[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+
+---
+
+## Training Data and Experimental Setup
+
+- **Classification Dataset:** 4,686 images (Train: 3,908 images – 83.40%, Validation: 462 images – 9.86%, Test: 316 images – 6.74%).
+- **Segmentation Dataset:** 2,198 records, consisting of 300 manually annotated polygons, 921 pseudo-masks processed through Auto-QC, and 977 healthy-skin background images with None masks.
+- **Quick Testing with Sample Images:** You can directly upload the sample images in the `data/` directory (`test_burn_degree2.jpg`, `test_burn_degree3.jpg`, and `test_normal_skin.jpg`) to test the system.
+
+---
+
+## Authors and Institutional Affiliation
+
+- **Student Contributors:**
+  - Lê Huỳnh Đức Huy
+  - Hà Phương Thảo
+  - Mai Hồ Quốc Túy
+  - Nguyễn Ngọc Khánh Uyên
+  - Nguyễn Khắc Lưu Vũ
+
+- **Institution:** Institute of Smart Technology and Interactive Media, University of Economics Ho Chi Minh City (UEH).
+
+---
+
+## Medical Disclaimer
+
+**Medical Disclaimer:** BurnAid AI is an academic decision-support system intended for reference purposes and initial first-aid guidance. It is not a substitute for professional medical diagnosis or assessment by qualified healthcare practitioners. In cases of severe burns, users should immediately seek medical attention at the nearest healthcare facility or contact emergency medical services at 115.
