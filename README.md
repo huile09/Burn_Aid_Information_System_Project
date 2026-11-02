@@ -8,22 +8,22 @@
 
 ---
 
-## 📌 Liên Kết Quan Trọng (Important Links)
+## Liên Kết Quan Trọng (Important Links)
 
-* 🌐 **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
-* 📊 **Full Dataset (Kaggle):** [Kaggle Skin Burn Detection Benchmark (4,686 images)](https://www.kaggle.com/datasets/fareselmenshawii/skin-burn-dataset)
-* 🧠 **Pretrained Model Weights (Google Drive):** [Download ConvNeXtV2 & U-Net++ Models](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)
-* 📄 **Báo Cáo Đồ Án (PDF):** [`report/IS.report.pdf`](report/IS.REPORT.pdf)
-* 📝 **Bài Báo Khoa Học (LaTeX):** [`report/paper/main.tex`](report/paper/GROUP_3_PAPER.pdf)
-* 🖥️ **Slide Báo Cáo (PDF):** [`slides/Bai_Thuyet_Trinh_BurnAid.pdf`](slides/IS.SLIDES.pdf)
+* **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
+* **Full Dataset (Kaggle):** [Kaggle Skin Burn Detection Benchmark (4,686 images)](https://www.kaggle.com/datasets/fareselmenshawii/skin-burn-dataset)
+* **Pretrained Model Weights (Google Drive):** [Download ConvNeXtV2 & U-Net++ Models](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)
+* **Báo Cáo Đồ Án (PDF):** [`report/IS.report.pdf`](report/IS.REPORT.pdf)
+* **Bài Báo Khoa Học (LaTeX):** [`report/paper/main.tex`](report/paper/GROUP_3_PAPER.pdf)
+* **Slide Báo Cáo (PDF):** [`slides/Bai_Thuyet_Trinh_BurnAid.pdf`](slides/IS.SLIDES.pdf)
 
 ---
 
-## 📖 Giới Thiệu Dự Án (Project Overview)
+## Giới Thiệu Dự Án (Project Overview)
 
 **BurnAid AI** là hệ thống hỗ trợ chẩn đoán và hướng dẫn sơ cứu bỏng ứng dụng thị giác máy tính và trí tuệ nhân tạo tạo sinh (GenAI/RAG), nhằm hỗ trợ người dân và nhân viên y tế tuyến cơ sở đánh giá nhanh mức độ bỏng, ước lượng diện tích bỏng (%TBSA), và đưa ra khuyến nghị sơ cứu khẩn cấp theo Quyết định 635/QĐ-BYT.
 
-### ✨ Các Tính Năng Cốt Lõi
+### Các Tính Năng Cốt Lõi
 1. **Quy trình thị giác 2 giai đoạn (2-Stage Computer Vision):**
    * **Stage 1 - Phân loại độ sâu:** Kiến trúc ConvNeXtV2-Nano (14.99M tham số) phân loại 4 lớp (Độ 1 - Ban đỏ, Độ 2 - Phỏng nước, Độ 3 - Hoại tử, Da lành - No Burn) đạt Macro-F1 = 0.8559 và Accuracy = 0.8576 trên 316 ảnh test.
    * **Stage 2 - Phân đoạn tổn thương:** Kiến trúc Curriculum U-Net++ (ResNet-34) khoanh vùng chính xác ranh giới mô tổn thương, đạt Mean Dice = 0.7215 trên tập test và kiềm chế mask ảo trên da lành xuống 6.09% (so với 99.13% ở mô hình thông thường).
@@ -35,7 +35,7 @@
 
 ---
 
-## 📁 Cấu Trúc Thư Mục Dự Án (Repository Structure)
+## Cấu Trúc Thư Mục Dự Án (Repository Structure)
 
 Cấu trúc thư mục:
 
@@ -86,7 +86,7 @@ BurnAid_AI/
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Chạy Hệ Thống (Quick Start)
+## Hướng Dẫn Cài Đặt & Chạy Hệ Thống (Quick Start)
 
 ### 1. Yêu cầu hệ thống
 * Python 3.10 trở lên.
@@ -111,7 +111,7 @@ pip install -r requirements.txt
 
 ### 3. Tải trọng số mô hình (Pretrained Weights)
 Do kích thước trọng số mô hình lớn, các file trọng số được lưu trữ an toàn trên Google Drive:
-* 👉 **[Link tải trọng số mô hình từ Google Drive](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)**
+* **[Link tải trọng số mô hình từ Google Drive](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)**
 * Tải 2 file `convnextv2_burn_4class_best.pth` và `best_random_curriculum_seed2026.pt` đặt vào thư mục `code/models/`.
 
 ### 4. Khởi chạy ứng dụng
@@ -130,11 +130,11 @@ python api_server.py
 ```
 
 Mở trình duyệt web và truy cập địa chỉ:
-👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+**[http://127.0.0.1:8000](http://127.0.0.1:8000)**
 
 ---
 
-## 🧪 Dữ Liệu Huấn Luyện & Thử Nghiệm
+## Dữ Liệu Huấn Luyện & Thử Nghiệm
 
 * **Bộ dữ liệu phân loại:** 4.686 ảnh (Train: 3.908 ảnh - 83.40%, Validation: 462 ảnh - 9.86%, Test: 316 ảnh - 6.74%).
 * **Bộ dữ liệu phân đoạn:** 2.198 records (300 manual polygon, 921 pseudo-masks qua Auto-QC, 977 ảnh nền da lành None).
@@ -142,7 +142,7 @@ Mở trình duyệt web và truy cập địa chỉ:
 
 ---
 
-## 👥 Nhóm Tác Giả & Đơn Vị Thực Hiện
+## Nhóm Tác Giả & Đơn Vị Thực Hiện
 * **Sinh viên thực hiện:**
   * Lê Huỳnh Đức Huy
   * Hà Phương Thảo
@@ -153,6 +153,5 @@ Mở trình duyệt web và truy cập địa chỉ:
 
 ---
 
-## ⚖️ Giấy Phép & Tuyên Bố Miễn Trừ Trách Nhiệm Y Khoa
-* **Giấy phép:** [MIT License](LICENSE).
+## Tuyên Bố Miễn Trừ Trách Nhiệm Y Khoa
 * **Tuyên bố y tế (Medical Disclaimer):** BurnAid AI là hệ thống hỗ trợ ra quyết định mang tính chất tham khảo học thuật và sơ cứu ban đầu, không thay thế chẩn đoán chuyên khoa của bác sĩ. Trong các trường hợp bỏng nặng, cần liên hệ ngay cơ sở y tế gần nhất hoặc gọi cấp cứu 115.
