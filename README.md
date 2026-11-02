@@ -78,6 +78,7 @@ BurnAid_AI/
 │   └── paper/               # Bài báo khoa học viết bằng LaTeX
 │       ├── main.tex         # Mã nguồn bài báo chuẩn định dạng IEEE LaTeX
 │       ├── GROUP_03_PAPER  # Bản PDF paper
+│       └── traininglog/  # Các csv có trong paper
 │
 └── slides/                  # Slide báo cáo thuyết trình
     ├── IS.SLIDES.pdf  # Slide thuyết trình đồ án (dạng PDF)
