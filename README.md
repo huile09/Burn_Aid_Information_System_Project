@@ -149,7 +149,7 @@ Mở trình duyệt web và truy cập địa chỉ:
   * Mai Hồ Quốc Túy
   * Nguyễn Ngọc Khánh Uyên
   * Nguyễn Khắc Lưu Vũ
-* **Đơn vị:** Viện Công nghệ Thông minh và Tương tác, Trường Đại học Kinh tế Thành phố Hồ Chí Minh (UEH).
+* **Đơn vị:** Viện Công nghệ Thông minh và Tương tác, Đại học Kinh tế Thành phố Hồ Chí Minh (UEH).
 
 ---
 
