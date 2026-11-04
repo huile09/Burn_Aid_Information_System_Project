@@ -1,14 +1,13 @@
 # BurnAid AI: BURN ASSESSMENT AND FIRST-AID GUIDANCE INFORMATION SYSTEM
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
-[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-orange)](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
 [![Kaggle Dataset](https://img.shields.io/badge/Kaggle-Dataset-20BEFF.svg)](https://www.kaggle.com/datasets/fareselmenshawii/skin-burn-dataset)
 
 ---
 [English below]
 ## Liên Kết Quan Trọng (Important Links)
 
-* **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
+* **Live Demo:** [BurnAid-AI](https://ha19thao07-burnaid.hf.space)
 * **Full Dataset (Kaggle):**
   [Dataset 1](https://www.kaggle.com/code/faresabbasai2022/skin-burn-detection-acc-97/input), 
   [Dataset 2](https://www.kaggle.com/competitions/itobos-2024-detection/data)
@@ -160,7 +159,7 @@ Mở trình duyệt web và truy cập địa chỉ:
 
 ## Important Links
 
-- **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
+- **Live Demo:** [BurnAid-AI](https://ha19thao07-burnaid.hf.space)
 - **Full Dataset (Kaggle):** 
   [Dataset 1](https://www.kaggle.com/code/faresabbasai2022/skin-burn-detection-acc-97/input), 
   [Dataset 2](https://www.kaggle.com/competitions/itobos-2024-detection/data)
