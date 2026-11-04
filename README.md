@@ -10,8 +10,8 @@
 
 * **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
 * **Full Dataset (Kaggle):**
-* [1](https://www.kaggle.com/code/faresabbasai2022/skin-burn-detection-acc-97/input), 
-* [2](https://www.kaggle.com/competitions/itobos-2024-detection/data)
+  [Dataset 1](https://www.kaggle.com/code/faresabbasai2022/skin-burn-detection-acc-97/input), 
+  [Dataset 2](https://www.kaggle.com/competitions/itobos-2024-detection/data)
 * **Pretrained Model Weights (Google Drive):** [Download ConvNeXtV2 & U-Net++ Models](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)
 * **Báo Cáo Đồ Án (PDF):** [`report/IS.report.pdf`](report/IS.REPORT.pdf)
 * **Bài Báo Khoa Học (LaTeX):** [`report/paper/main.tex`](report/paper/GROUP_3_PAPER.pdf)
@@ -162,8 +162,8 @@ Mở trình duyệt web và truy cập địa chỉ:
 
 - **Live Demo (Hugging Face Spaces):** [https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI](https://huggingface.co/spaces/YOUR_USERNAME/BurnAid-AI)
 - **Full Dataset (Kaggle):** 
-* [1](https://www.kaggle.com/code/faresabbasai2022/skin-burn-detection-acc-97/input), 
-* [2](https://www.kaggle.com/competitions/itobos-2024-detection/data)
+  [Dataset 1](https://www.kaggle.com/code/faresabbasai2022/skin-burn-detection-acc-97/input), 
+  [Dataset 2](https://www.kaggle.com/competitions/itobos-2024-detection/data)
 - **Pretrained Model Weights (Google Drive):** [Download ConvNeXtV2 & U-Net++ Models](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)
 - **Project Report (PDF):** [`report/IS.report.pdf`](report/IS.REPORT.pdf)
 - **Scientific Research Paper (LaTeX):** [`report/paper/main.tex`](report/paper/GROUP_3_PAPER.pdf)
