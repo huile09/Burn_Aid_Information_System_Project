@@ -13,7 +13,7 @@
   [Dataset 2](https://www.kaggle.com/competitions/itobos-2024-detection/data)
 * **Pretrained Model Weights (Google Drive):** [Download ConvNeXtV2 & U-Net++ Models](https://drive.google.com/drive/folders/16Eioi25kgdv-j4CtXtLZ77SiB1kiOxuI?usp=sharing)
 * **Báo Cáo Đồ Án (PDF):** [`report/IS.report.pdf`](report/IS.REPORT.pdf)
-* **Bài Báo Khoa Học (LaTeX):** [`report/paper/main.tex`](report/paper/GROUP_3_PAPER.pdf)
+* **Bài Báo Khoa Học (LaTeX):** [`report/paper/main.pdf`](report/paper/GROUP_3_PAPER_IS.pdf)
 * **Slide Báo Cáo (PDF):** [`slides/Bai_Thuyet_Trinh_BurnAid.pdf`](slides/IS.SLIDES.pdf)
 
 ---
