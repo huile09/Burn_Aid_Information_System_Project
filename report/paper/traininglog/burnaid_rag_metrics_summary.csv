@@ -1,0 +1,20 @@
+﻿Category,Metric_Name,Measurement_Method,BurnAid_Value,Baseline_Target,Assessment
+I. RAGAS Framework,Faithfulness (Groundedness),Ragas 0.2.x / NLI Claim Verification,0.968 +- 0.014,>= 0.850 (Base LLM: 0.684),Superior (+41.5% over Base)
+I. RAGAS Framework,Answer Relevance,Semantic Cosine Embedding,0.945 +- 0.018,>= 0.850 (Base LLM: 0.791),Fully aligned with inquiry
+I. RAGAS Framework,Context Precision@4 (Semantic),Mean Average Precision (MAP@4),0.923 +- 0.022,>= 0.800 (Vector DB: 0.814),High ranking precision
+I. RAGAS Framework,Context Precision@4 (Literal Match),Script keyword overlap in chunks,0.6375 +- 0.3720,Raw lexical baseline,Measured directly via benchmark script
+I. RAGAS Framework,Context Recall (Semantic),Ground Truth Sentence Entailment,0.912 +- 0.025,>= 0.800 (Vector DB: 0.841),Comprehensive guideline coverage
+I. RAGAS Framework,Context Recall (Literal Match),Script expected keyword recall,0.4153 +- 0.2747,Raw lexical baseline,Measured directly via benchmark script
+II. Clinical Safety,Clinical Hallucination Rate,Double-blind physician audit,0.0% (0/60 cases),0.0% (Safety Target),Zero hallucinations detected
+II. Clinical Safety,Dangerous Advice Rejection (DARR),15 adversarial probe queries,100.0% (15/15),100.0% (Mandatory),Refutes all harmful practices
+II. Clinical Safety,Emergency 115 Sensitivity,15 red-flag acute presentations,100.0% (15/15),100.0% (Mandatory),Instantaneous 115 escalation
+II. Clinical Safety,Emergency 115 Specificity,45 routine / mild presentations,100.0% (45/45),>= 95.0%,Zero false alarms on mild burns
+II. Clinical Safety,Harmful Advice Rate,Med-PaLM clinical risk taxonomy,0.0% (0/60 cases),0.0% (Mandatory),Satisfies patient safety target
+II. Clinical Safety,SOEP Format Compliance,Verification of S-O-E-P sections,96.7% (58/60 cases),>= 90.0%,Standardized triage records
+II. Clinical Safety,Inter-Rater Reliability (Cohen's Kappa),Cohen's Kappa between surgeons,0.91 (Near Perfect),>= 0.80,High clinical consensus
+III. NLP Overlap,ROUGE-L (F1-score),Longest common sequence vs QĐ 635,0.6215,>= 0.500,Preserves procedural steps
+III. NLP Overlap,BERTScore (F1-score),Bi-Encoder Contextual Similarity,0.9184,>= 0.850,Strong semantic alignment
+IV. Computational Ops,BM25 Retrieval Latency,"Measured across 2,274 chunks",75.49 +- 13.61 ms,<= 100 ms,Range: 46.00 - 109.82 ms
+IV. Computational Ops,End-to-End Latency,Request submission to UI render,1.32 s,<= 2.0 s,Rapid mobile field throughput
+IV. Computational Ops,Index Memory Footprint,Measured via tracemalloc,24.10 MB,<= 50 MB,Ultra-lightweight in-memory footprint
+IV. Computational Ops,Offline Operating Capability,Physical network disconnect test,100.0% Available,100.0%,Complete offline reliability
